@@ -203,3 +203,33 @@ mod exercise_loops_and_functions {
         println!("{}", sqrt(4_f64));
     }
 }
+
+#[cfg(test)]
+mod switch {
+
+    #[cfg(target_os="darwin")]
+    mod runtime {
+        pub const RUSTOS: &str = "darwin";
+    }
+
+    #[cfg(target_os="linux")]
+    mod runtime {
+        pub const RUSTOS: &str = "linux";
+    }
+
+    #[cfg(not(any(target_os="darwin", target_os="linux")))]
+    mod runtime {
+        pub const RUSTOS: &str = "other";
+    }
+
+    #[test]
+    fn main() {
+        print!("Rust runs on ");
+        let os = match runtime::RUSTOS {
+            "darwin" => "OS X.",
+            "linux" => "Linux.",
+            os => os,
+        };
+        println!("{}", os);
+    }
+}
