@@ -100,3 +100,142 @@ fn slices_pointers() {
 
     println!("{:?}", names);
 }
+
+#[test]
+fn slice_literals() {
+    let q: &[i32] = &[2, 3, 5, 7, 11, 13];
+    println!("{:?}", q);
+
+    let r: &[bool] = &[true, false, true, true, false, true];
+    println!("{:?}", r);
+
+    // Rust doesn't support anonymous structs, but tuples can be used instead
+    let s: &[(i32, bool)] = &[
+        (2, true),
+        (3, false),
+        (5, true),
+        (7, true),
+        (11, true),
+        (13, true),
+    ];
+    println!("{:?}", s);
+}
+
+#[test]
+fn slice_bounds() {
+    // If we did `&[2, 3, ..., 13]` the compiler would complain because the size of the slice is
+    // changing. For some reason doing this instead works...
+    let mut s: &[i32] = &(vec![2, 3, 5, 7, 11, 13])[..];
+
+    s = &s[1..4];
+    println!("{:?}", s);
+
+    s = &s[..2];
+    println!("{:?}", s);
+
+    s = &s[1..];
+    println!("{:?}", s);
+}
+
+#[cfg(test)]
+mod slices_len_cap {
+    #[test]
+    fn main() {
+        // Go's slices are a bit more like Rust's Vec
+        let v = vec![2, 3, 5, 7, 11, 13];
+
+        // You can't shrink and extend a slice and have the data still be there in Rust because
+        // that is dumb...
+        print_vec(v[..0].to_vec());
+
+        print_vec(v[..4].to_vec());
+
+        print_vec(v[2..].to_vec());
+    }
+
+    fn print_vec(v: Vec<i32>) {
+        println!("len={}, cap={}, {:?}", v.len(), v.capacity(), v);
+    }
+}
+
+#[cfg(test)]
+mod making_slices {
+    #[test]
+    fn making_slices() {
+        let a = vec![0; 5];
+        print_vec("a", &a);
+
+        let mut b = Vec::<i32>::with_capacity(5);
+        print_vec("b", &b);
+
+        // Rust doesn't do initialization and bounds checking
+        b.extend(&[0, 0, 0, 0, 0]);
+        let c = b[..2].to_vec();
+        print_vec("c", &c);
+
+        let d = b[2..5].to_vec();
+        print_vec("d", &d);
+    }
+
+    fn print_vec(s: &str, v: &Vec<i32>) {
+        println!("{} len={} cap={} {:?}", s, v.len(), v.capacity(), v);
+    }
+}
+
+#[test]
+fn slices_of_slices() {
+    let mut board = vec![
+        ["_", "_", "_"],
+        ["_", "_", "_"],
+        ["_", "_", "_"],
+    ];
+
+    board[0][0] = "X";
+    board[2][2] = "O";
+    board[1][2] = "X";
+    board[1][0] = "O";
+    board[0][2] = "X";
+
+    for row in board {
+        println!("{}", row.join(" "))
+    }
+}
+
+#[test]
+fn append() {
+    let mut s = Vec::<i32>::new();
+
+    s.extend(&[0]);
+
+    s.extend(&[1]);
+
+    s.extend(&[2, 3, 4]);
+}
+
+#[test]
+fn range() {
+    let pow = vec![1, 2, 4, 8, 16, 32, 64, 128];
+    for (i, v) in pow.iter().enumerate() {
+        println!("2**{} = {}", i, v);
+    }
+}
+
+#[test]
+fn range_continued() {
+    let mut pow = vec![0; 10];
+
+    for i in 0..pow.len() {
+        pow[i] = 1 << i;
+    }
+
+    for value in pow {
+        println!("{}", value);
+    }
+
+    // Or with map
+    pow = vec![0; 10].into_iter().enumerate().map(|(i, _)| 1 << i).collect();
+
+    for value in pow {
+        println!("{}", value);
+    }
+}
