@@ -239,3 +239,88 @@ fn range_continued() {
         println!("{}", value);
     }
 }
+
+#[cfg(test)]
+mod maps {
+    use std::collections::HashMap;
+
+    #[derive(Debug)]
+    struct Vertex {
+        lat: f64,
+        long: f64,
+    }
+
+    // Cannot have heap allocated static variables
+    // static m: HashMap<&str, Vertex> = HashMap::new();
+
+    #[test]
+    fn maps() {
+        let mut m = HashMap::new();
+        m.insert("Bell Labs", Vertex{lat: 40.68433, long: -74.39967});
+        println!("{:?}", m.get("Bell Labs").unwrap());
+    }
+
+    #[test]
+    fn mutating_maps() {
+        let mut m = HashMap::new();
+        m.insert("Answer", 42);
+        println!("The value: {}", m.get("Answer").unwrap());
+        m.insert("Answer", 48);
+        println!("The value: {}", m.get("Answer").unwrap());
+        m.remove("Answer");
+        // Rust returns Option<T> for this, so if there isn't an entry, it is None
+        println!("The value: {:?}", m.get("Answer"));
+        let (v, ok) = match m.get("Answer") {
+            Some(&v) => (v, true),
+            None => (0, false),
+        };
+        println!("The value: {} Present? {}", v, ok);
+    }
+}
+
+#[cfg(test)]
+mod functions {
+    fn compute(f: fn(f64, f64) -> f64) -> f64 {
+        return f(3_f64, 4_f64);
+    }
+
+    #[test]
+    fn function_values() {
+        fn hypot(x: f64, y: f64) -> f64 { (x*x + y*y).sqrt() }
+        println!("{}", hypot(5_f64, 12_f64));
+        println!("{}", compute(hypot));
+    }
+
+    fn adder() -> Box<FnMut(i32) -> i32> {
+        let mut sum = 0;
+        Box::new(move |x| { sum += x; sum })
+    }
+
+    #[test]
+    fn function_closures() {
+        let (mut pos, mut neg) = (adder(), adder());
+        for i in 0..9 {
+            println!("{} {}", pos(i), neg(-2*i));
+        }
+    }
+
+    fn fibonacci() -> Box<FnMut() -> i32> {
+        let mut a = 0;
+        let mut b = 1;
+        Box::new(move || {
+            let sum = a+b;
+            let c = a + b;
+            a = b;
+            b = c;
+            sum
+        })
+    }
+
+    #[test]
+    fn exercise_fibonacci_closure() {
+        let mut f = fibonacci();
+        for _ in 0..9 {
+            println!("{}", f());
+        }
+    }
+}
